@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+    <script src="//code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="locCallClass.js"></script>
+</head>
+<body>
+
+<script>
+    $( document ).ready(function() {
+
+        loc = new locCallClass();
+
+        var richterStacks = [
+
+            { "id": "4.A1.e", "start": "A0 .A1",     "end": "BE9999 .Z9" },
+            { "id": "9.A1.e", "start": "BF0 .A1",    "end": "BF311.0" },
+            { "id": "7.A1.e", "start": "BF311.P",    "end": "BZ9999 .Z9" },
+            { "id": "7.A1.e", "start": "C0 .A1",     "end": "CZ9999 .Z9" },
+            { "id": "7.A1.e", "start": "D0 .A1",     "end": "DZ9999 .Z9" },
+            { "id": "7.A1.e", "start": "E0 .A1",     "end": "EZ9999 .Z9" },
+            { "id": "7.A1.e", "start": "F0 .A1",     "end": "F2199" },
+            { "id": "6.A1.e", "start": "F2200",      "end": "FZ" },
+            { "id": "6.A1.e", "start": "G0 .A1",     "end": "GZ9999 .Z9" },
+            { "id": "6.A1.e", "start": "H0 .A1",     "end": "HZ9999 .Z9" },
+            { "id": "6.A1.e", "start": "J0 .A1",     "end": "JV9999 .Z9" },
+            { "id": "5.A1.e", "start": "JW .A1",     "end": "JZ9999 .Z9" },
+            { "id": "5.A1.e", "start": "K0 .A1",     "end": "KZ9999 .Z9" },
+            { "id": "5.A1.e", "start": "L0 .A1",     "end": "MZ9999 .Z9" },
+            { "id": "5.A1.e", "start": "N0 .A1",     "end": "OZ9999 .Z9" },
+            { "id": "5.A1.e", "start": "P0000",      "end": "PQ7297 .Z9" },
+            { "id": "4.A1.e", "start": "PQ7928 .A1", "end": "PZ9999 .Z9" },
+            { "id": "4.A1.e", "start": "Q0 .A1",     "end": "QG9999 .Z9" },
+            { "id": "9.A1.e", "start": "QH0 .A1",    "end": "QZ9999 .Z9" },
+            { "id": "9.A1.e", "start": "R0 .A1",     "end": "RZ9999 .Z9" },
+            { "id": "9.A1.e", "start": "S0 .A1",     "end": "SZ9999 .Z9" },
+            { "id": "9.A1.e", "start": "T0 .A1",     "end": "TZ9999 .Z9" },
+            { "id": "9.A1.e", "start": "U0 .A1",     "end": "UZ9999 .Z9" },
+            { "id": "9.A1.e", "start": "V0 .A1",     "end": "YZ9999 .Z9" },
+            { "id": "7.A1.e", "start": "Z0 .A1",     "end": "ZZ9999 .Z9" }
+
+        ];
+
+
+
+        for(var i = 0; i < richterStacks.length; i++) {
+
+            var rowNumber = i + 1;
+            var id = richterStacks[i].id;
+            var start = richterStacks[i].start;
+            var end = richterStacks[i].end;
+
+            var splitId = richterStacks[i].id.split('.'); // id generally looks like "5.G47.w"
+            var floor = splitId[0];
+
+            var item = '<tr id="row_' + rowNumber + '"><td> ' + rowNumber + '</td><td>' + id + '</td><td>' + start + '</td><td>' + end + '</td><td>' + floor + '</td></tr>';
+            $('#stackmap').append(item);
+
+        }
+
+
+
+        $('#check').on('click', function () {
+            console.log('check');
+
+            var callnumber = $('#callnumber').val();
+            console.log(callnumber);
+
+
+            for(var i = 0; i < richterStacks.length; i++) {
+
+                var id = richterStacks[i].id;
+                var start = richterStacks[i].start;
+                var end = richterStacks[i].end;
+
+                if(loc.isBetween(start, end, callnumber) == true) {
+
+                    var floor = id;
+                }
+
+            }
+
+            $('#result').html('floor ' + floor);
+        });
+
+
+
+
+
+    });
+</script>
+
+<div class="container">
+    <h3>Richter Floor Map Index</h3>
+
+    <input type="text" id="callnumber" name="callnumber" /> <button id="check" name="check">Check</button>
+
+    <div id="result"></div>
+
+    <table class="table table-striped" id="stackmap">
+        <tr>
+            <th>Row</th>
+            <th>id</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Floor</th>
+        </tr>
+    </table>
+</div>
+
+</body>
+</html>
