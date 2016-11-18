@@ -4,7 +4,10 @@
   "description": "Map library call numbers to a physical location and display a floor map in a modal window.",
   "main": "entry.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --progress",
+    "build:prod": "webpack -p --progress",
+    "serve": "webpack-dev-server --inline --progress"
   },
   "devDependencies": {
     "babel-core": "^6.18.2",
