@@ -35,6 +35,18 @@ var UmlFloorMapModule = (function () {
 
     ];
 
+    var staticLocations = {
+
+        "Newspapers":     { "id": "1.newspapers" },
+        "New Books":      { "id": "1.newBooks" },
+        "Graphic Novels": { "id": "1.graphicNovels" },
+        "Travel":         { "id": "1.travel" },
+        "Bestsellers":    { "id": "1.bestSellers" },
+        "Nursing Room":   { "id": "1.nursingRoom" },
+        "Juvenile":       { "id": "6.juvenile" }
+
+    };
+
 
     var init = function() {
         console.log('UmlFloorMap Module Loaded');
@@ -47,7 +59,8 @@ var UmlFloorMapModule = (function () {
 
     return {
         init: init,
-        richterStacks: richterStacks
+        richterStacks: richterStacks,
+        staticLocations: staticLocations
     }
 
 })();
