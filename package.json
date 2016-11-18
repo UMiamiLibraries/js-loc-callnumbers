@@ -1,0 +1,38 @@
+{
+  "name": "callnumbers.local",
+  "version": "1.0.0",
+  "description": "Map library call numbers to a physical location and display a floor map in a modal window.",
+  "main": "entry.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "babel-core": "^6.18.2",
+    "babel-loader": "^6.2.7",
+    "babel-plugin-transform-runtime": "^6.15.0",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-preset-stage-0": "^6.16.0",
+    "babel-runtime": "^6.18.0",
+    "css-loader": "^0.25.0",
+    "extract-text-webpack-plugin": "^1.0.1",
+    "file-loader": "^0.9.0",
+    "html-loader": "^0.4.4",
+    "imports-loader": "^0.6.5",
+    "jquery": "^3.1.1",
+    "regularjs": "^0.5.2",
+    "style-loader": "^0.13.1",
+    "url-loader": "^0.5.7",
+    "webpack": "^1.13.3",
+    "webpack-dev-server": "^1.16.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UMiamiLibraries/js-loc-callnumbers.git"
+  },
+  "author": "Charles Brown-Roberts",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/UMiamiLibraries/js-loc-callnumbers/issues"
+  },
+  "homepage": "https://github.com/UMiamiLibraries/js-loc-callnumbers#readme"
+}
