@@ -9,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
     <script src="//code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="js/jquery.colorbox-min.js"></script>
     <script type="text/javascript" src="locCallClass.js"></script>
 </head>
 <body>
@@ -17,11 +18,18 @@
         background-color: #ffffcc;
     }
 </style>
+
+
 <script>
     $( document ).ready(function() {
 
-        //clear the floor map
+
+
+        // clear map container
         $('#floor-map-container').empty();
+
+        // clear row highlight
+        $('tr').removeClass('highlight');
 
 
         loc = new locCallClass();
@@ -77,11 +85,12 @@
 
         $('#check').on('click', function () {
 
-            //clear the floor map
+
+            // clear map container
             $('#floor-map-container').empty();
 
-            //clear row highlight
-            $('tr').removeClass('highlight');
+            $('#result').empty();
+
 
             var callnumber = $('#callnumber').val();
 
@@ -93,21 +102,115 @@
                 var end = richterStacks[i].end;
 
                 if(loc.isBetween(start, end, callnumber) == true) {
-
                     var splitId = id.split('.'); // id generally looks like "5.G47.w"
                     var floor = splitId[0];
-                    var imgUrl = 'maps/' + floor + '_floor.png'
+
+                    $('table').removeClass('table-striped');
+
+                    var rowSelector = '#row_' + rowNumber;
+                    console.log(rowSelector);
+                    $(rowSelector).addClass('highlight').siblings().removeClass('highlight').parent();
+
+                    var imgUrl = "<img src='maps/floor_" + floor + ".png' />";
 
                     $('#floor-map-container').html("<img src='" + imgUrl + "' alt='description' />");
-
-                    $('#row_' + rowNumber).addClass('highlight');
                 }
 
             }
 
-            $('#result').html('floor ' + floor);
+
+            $('#result').html(callnumber + ' is located on floor ' + floor);
         });
 
+
+
+
+        $('.map-marker').on('click', function () {
+
+            var callnumber = $(this).siblings('.EXLAvailabilityCallNumber').text().replace(/[()]/g, '');
+
+            // clear map container
+            $('#floor-map-container').empty();
+
+            $('#result').empty();
+
+            for(var i = 0; i < richterStacks.length; i++) {
+
+                var rowNumber = i + 1;
+                var id = richterStacks[i].id;
+                var start = richterStacks[i].start;
+                var end = richterStacks[i].end;
+
+                if(loc.isBetween(start, end, callnumber) == true) {
+                    var splitId = id.split('.'); // id generally looks like "5.G47.w"
+                    var floor = splitId[0];
+
+                    $('table').removeClass('table-striped');
+
+                    var rowSelector = '#row_' + rowNumber;
+                    console.log(rowSelector);
+                    $(rowSelector).addClass('highlight').siblings().removeClass('highlight').parent();
+
+
+                    //var imgUrl = "<img src='maps/floor_" + floor + ".png' />";
+                    //$('#floor-map-container').html(imgUrl);
+
+
+
+                    // Get the appropriate floor map image and insert it
+                    // into the div that contains the canvas.
+                    var theImage = $('<img>');
+                    var imageURL = "maps/floor_" + floor + ".png";
+                    theImage.attr('src', imageURL);
+                    theImage.attr('id', 'theImage');
+                    $('#theMap').prepend(theImage);
+
+                    /*
+                    // Draw a rectangle on the canvas and then unhide the canvas.
+                    var drawingLayer = document.getElementById("theCanvas");
+                    var drawingContext = drawingLayer.getContext("2d");
+                    drawingContext.globalAlpha = 0.6;
+                    drawingContext.fillStyle = "#A34687";
+                    drawingContext.fillRect(data.x, data.y, data.width, data.height);
+                    $('#theCanvas').show();
+                    */
+
+
+                    // Display the map in a modal window.
+                    $.colorbox({
+                        opacity:0,
+                        transition:"none",
+                        inline:true,
+                        href:"#theMap",
+                        height:"700px",
+                        width:"900px",
+                        scrolling:false,
+                        onCleanup:function() {
+                            // When the modal window closes, get rid of the image, message, and rectangle
+                            // and re-hide the canvas.
+                            //drawingContext.clearRect(0, 0, drawingLayer.width, drawingLayer.height);
+                            $('#theImage').remove();
+                            //$('#theCanvas').hide();
+                            $('.locMessage').remove();
+                        }
+                    });
+
+
+
+
+
+
+
+
+                }
+
+            }
+
+
+            $('#result').html(callnumber + ' is located on floor ' + floor);
+
+
+        });
 
 
 
@@ -121,11 +224,19 @@
         <div class="col-lg-12">
             <h3>Richter Floor Map Index</h3>
             <input type="text" id="callnumber" name="callnumber" /> <button id="check" name="check">Check</button>
-            <div id="result"></div>
         </div>
-    </div>
 
-    <div class="row">
+        <div class="col-lg-12">
+            <p class="EXLResultAvailability">
+                <em class="EXLResultStatusAvailable" id="RTADivTitle_1">Available at
+                    <span class="EXLAvailabilityLibraryName">Richter Library</span>&nbsp;
+                    <span class="EXLAvailabilityCollectionName">Books</span>&nbsp;
+                    <span class="EXLAvailabilityCallNumber">(PS3553.L245 T65 1995x )</span>
+                    <span class="glyphicon glyphicon-map-marker" aria-hidden="true"></span>
+                </em>
+            </p>
+        </div>
+
         <div class="col-lg-3">
             <table class="table table-striped" id="stackmap">
                 <tr>
@@ -137,15 +248,222 @@
         </div>
 
         <div class="col-lg-9">
+            <div id="result"></div>
             <span id="floor-map-container">
-                <img src="maps/4_floor.png" />
+                <img src="maps/floor_4.png" />
             </span>
 
-        </div>
+            <div id="theMap">
+                <canvas id="theCanvas" ></canvas>
+            </div>
 
+            <tr id="exlidResult7" class="EXLResult EXLResultMediaTYPEbook">
+                <td class="EXLMyShelfStar">
+                    <!-- miniAddToEshelf.tag begin -->
+                    <a href="basket.do?fn=create&amp;docs=01UOML_ALMA21151369950002976&amp;remote=false&amp;scopes=&amp;index=8" onclick="boomCallToRum('eShelf_7',false);" title="Add to e-Shelf"><img src="../uploaded_files/uml/icon_star_off.png" alt="Add to e-Shelf"></a>
+
+                    <input type="hidden" class="gatherpagestat" value="true">
+
+                    <input type="hidden" class="EXLTabBoomId" id="eShelf_7" value="A=Primo_Local&amp;I=01UOML&amp;S=213463AF69726B7A3C081509914A7E1C&amp;G=&amp;IP=10.28.120.110&amp;SRVR=fe0201.prod.pmt.dc04.hosted.exlibrisgroup.com&amp;P=brief&amp;OP=eShelfSave&amp;TYP=Page_View_4.9.6.0&amp;O=%268%26rank%26book%2601UOML%2601UOML - University of Miami%26%26&amp;O1=Primo Local&amp;O2=01UOML_ALMA&amp;O3=01UOML_ALMA21151369950002976&amp;O4=save_to_eshelf&amp;O5=01UOML.01UOML.PPRD&amp;O6=&amp;O7=0&amp;O8=mystery&amp;O9=uml&amp;O12=1&amp;O13=01UOML_ALMA&amp;O14=&amp;O15=&amp;O16=&amp;O17=default_tab&amp;O18=&amp;O23=Primo&amp;">
+                    <input type="hidden" class="boombaseurl" value="https://beacon01.alma.exlibrisgroup.com/boom/apache_pb.gif">
+
+                    <!-- miniAddToEshelf.tag end --><div class="item_number">
+                    8<!-- boomerang -->
+                    <input type="hidden" class="gatherpagestat" value="true">
+
+                    <input type="hidden" class="EXLTabBoomId" id="icon_7" value="A=Primo_Local&amp;I=01UOML&amp;S=213463AF69726B7A3C081509914A7E1C&amp;G=&amp;IP=10.28.120.110&amp;SRVR=fe0201.prod.pmt.dc04.hosted.exlibrisgroup.com&amp;P=brief&amp;OP=icon&amp;TYP=Page_View_4.9.6.0&amp;O=%261%26rank%26book%2601UOML%2601UOML - University of Miami%26%26&amp;O1=Primo Local&amp;O2=01UOML_ALMA&amp;O3=01UOML_ALMA21151369950002976&amp;O4=title,&amp;O5=01UOML.01UOML.PPRD&amp;O6=&amp;O7=0&amp;O8=mystery&amp;O9=uml&amp;O12=1&amp;O13=01UOML_ALMA&amp;O14=&amp;O15=&amp;O16=&amp;O17=default_tab&amp;O18=&amp;O23=Primo&amp;">
+                    <input type="hidden" class="boombaseurl" value="https://beacon01.alma.exlibrisgroup.com/boom/apache_pb.gif">
+
+                    <input type="hidden" class="gatherpagestat" value="true">
+
+                    <input type="hidden" class="EXLTabBoomId" id="title_7" value="A=Primo_Local&amp;I=01UOML&amp;S=213463AF69726B7A3C081509914A7E1C&amp;G=&amp;IP=10.28.120.110&amp;SRVR=fe0201.prod.pmt.dc04.hosted.exlibrisgroup.com&amp;P=brief&amp;OP=title&amp;TYP=Page_View_4.9.6.0&amp;O=%261%26rank%26book%2601UOML%2601UOML - University of Miami%26%26&amp;O1=Primo Local&amp;O2=01UOML_ALMA&amp;O3=01UOML_ALMA21151369950002976&amp;O4=title,&amp;O5=01UOML.01UOML.PPRD&amp;O6=&amp;O7=0&amp;O8=mystery&amp;O9=uml&amp;O12=1&amp;O13=01UOML_ALMA&amp;O14=&amp;O15=&amp;O16=&amp;O17=default_tab&amp;O18=&amp;O23=Primo&amp;">
+                    <input type="hidden" class="boombaseurl" value="https://beacon01.alma.exlibrisgroup.com/boom/apache_pb.gif">
+
+                    <!-- boomerang -->
+                </div></td><td class="EXLResultNumber"></td>
+
+                <!-- c:set var="baseFrbrUrl" value="http://miami-primo.hosted.exlibrisgroup.com/primo_library/libweb/action/search.do?frbg=&&fn=search&indx=1&dscnt=0&vl(1UIStartWith0)=contains&scp.scps=scope%3A(01UOML_ALMA)&tb=t&mode=Basic&vid=uml&vl(672718000UI0)=any&ct=search&tab=default_tab&srt1=rank&vl(984357462UI1)=all_items&vl(freeText0)=mystery&dum=true&dstmp=1479496074071"/ -->
+                <!-- Use new display of frbr (generic record) -->
+                <!-- Use old display of frbr (preferred record) -->
+                <td class="EXLThumbnail"><a name="01UOML_ALMA21151369950002976" id="01UOML_ALMA21151369950002976" class="EXLResultRecordId"></a>
+                    <!--begin thumbnails-->
+                    <div class="bg_fix multipleCoverImageContainer EXLBriefResultsDisplayCoverImages ">
+                        <div class="coverImageDiv EXLBriefResultsDisplayCoverImage EXLBriefResultsDisplayCoverImageNUM0 EXLBriefResultsThumbnailTypeMedia" style="z-index:1;">
+
+                            <!-- if not on line (meaning link refers to full view) or online but the title is not linkable (which means the thumbnail refers to full view) then add param -->
+                            <script type="text/javascript">
+                                pushThumbnailsData(encodeURI("http://images.amazon.com/images/P/055335079X.01._SSTHUM_.jpg"),"exlidThumbnail_7_0");
+                            </script>
+                            <a class="EXLThumbnailLinkMarker" href="display.do?tabs=detailsTab&amp;ct=display&amp;fn=search&amp;doc=01UOML_ALMA21151369950002976&amp;indx=8&amp;recIds=01UOML_ALMA21151369950002976&amp;recIdxs=7&amp;elementId=7&amp;renderMode=poppedOut&amp;displayMode=full&amp;frbrVersion=2&amp;frbg=&amp;&amp;dscnt=0&amp;vl(1UIStartWith0)=contains&amp;scp.scps=scope%3A%2801UOML_ALMA%29&amp;tb=t&amp;mode=Basic&amp;vid=uml&amp;vl(672718000UI0)=any&amp;tab=default_tab&amp;srt=rank&amp;vl(984357462UI1)=all_items&amp;vl(freeText0)=mystery&amp;dum=true&amp;dstmp=1479496074080&amp;gathStatIcon=true" target="_parent" tabindex="-1" onclick="">
+                                <img src="../images/pixel.png" alt="The regatta mystery, and other stories" class="EXLBriefResultsCover" id="exlidThumbnail_7_0">
+                            </a>
+                        </div>
+                        <div class="coverImageDiv EXLBriefResultsDisplayCoverImage EXLBriefResultsDisplayCoverImageNUM1 EXLBriefResultsThumbnailTypeMedia" style="z-index:101;">
+
+                            <!-- if not on line (meaning link refers to full view) or online but the title is not linkable (which means the thumbnail refers to full view) then add param -->
+                            <script type="text/javascript">// <![CDATA[
+                            function updateGBSCover7 (covers){
+                                var thumbUrl = getGBSCover(covers);
+                                var thumbImg = $('#exlidThumbnail_7_1');
+                                if (thumbImg && thumbUrl){
+                                    $(thumbImg).attr('src',thumbUrl);
+                                    $(thumbImg).parent().css('display','inline');
+                                }
+                            }
+                            addThumbnailQueryUrl('http://books.google.com/books?bibkeys=ISBN:055335079X,OCLC:14816374,LCCN:&jscmd=viewapi&callback=updateGBSCover7'); //add url to list of urls to be loaded with the page's onload event.
+                            // ]]>
+                            </script>
+                            <noscript>This feature requires javascript</noscript>
+                            <a class="EXLThumbnailLinkMarker" href="display.do?tabs=detailsTab&amp;ct=display&amp;fn=search&amp;doc=01UOML_ALMA21151369950002976&amp;indx=8&amp;recIds=01UOML_ALMA21151369950002976&amp;recIdxs=7&amp;elementId=7&amp;renderMode=poppedOut&amp;displayMode=full&amp;frbrVersion=2&amp;frbg=&amp;&amp;dscnt=0&amp;vl(1UIStartWith0)=contains&amp;scp.scps=scope%3A%2801UOML_ALMA%29&amp;tb=t&amp;mode=Basic&amp;vid=uml&amp;vl(672718000UI0)=any&amp;tab=default_tab&amp;srt=rank&amp;vl(984357462UI1)=all_items&amp;vl(freeText0)=mystery&amp;dum=true&amp;dstmp=1479496074080&amp;gathStatIcon=true" target="_parent" style="display:none;" tabindex="-1" onclick="">
+                                <img src="../images/pixel.png" alt="The regatta mystery, and other stories" class="EXLBriefResultsCover" id="exlidThumbnail_7_1">
+                            </a>
+                        </div>
+                        <div class="coverImageDiv EXLBriefResultsDisplayCoverImage EXLBriefResultsDisplayCoverImageBackup EXLBriefResultsThumbnailTypeMedia" style="z-index:1;">
+                            <a class="EXLThumbnailLinkMarker" href="display.do?tabs=detailsTab&amp;ct=display&amp;fn=search&amp;doc=01UOML_ALMA21151369950002976&amp;indx=8&amp;recIds=01UOML_ALMA21151369950002976&amp;recIdxs=7&amp;elementId=7&amp;renderMode=poppedOut&amp;displayMode=full&amp;frbrVersion=2&amp;frbg=&amp;&amp;dscnt=0&amp;vl(1UIStartWith0)=contains&amp;scp.scps=scope%3A%2801UOML_ALMA%29&amp;tb=t&amp;mode=Basic&amp;vid=uml&amp;vl(672718000UI0)=any&amp;tab=default_tab&amp;srt=rank&amp;vl(984357462UI1)=all_items&amp;vl(freeText0)=mystery&amp;dum=true&amp;dstmp=1479496074080&amp;gathStatIcon=true" onclick="reportClick();" target="_parent">
+                                <img alt="The regatta mystery, and other stories" src="../images/pixel.png">
+                            </a>
+                        </div>
+                    </div>
+
+                    <!--end thumbnails-->
+                    <div class="EXLHiddenCue">Material Type: </div><span class="EXLThumbnailCaption" id="mediaTypeCaption-8">Book</span>
+                </td>
+
+                <td class="EXLSummary">
+                    <div class="EXLSummaryContainer">
+                        <div class="EXLSummaryFields">
+                            <h2 class="EXLResultTitle">
+                                <!-- strippedTitle=The regatta mystery, and other stories -->
+                                <a href="display.do?tabs=detailsTab&amp;ct=display&amp;fn=search&amp;doc=01UOML_ALMA21151369950002976&amp;indx=8&amp;recIds=01UOML_ALMA21151369950002976&amp;recIdxs=7&amp;elementId=7&amp;renderMode=poppedOut&amp;displayMode=full&amp;frbrVersion=2&amp;frbg=&amp;&amp;dscnt=0&amp;vl(1UIStartWith0)=contains&amp;scp.scps=scope%3A%2801UOML_ALMA%29&amp;tb=t&amp;mode=Basic&amp;vid=uml&amp;vl(672718000UI0)=any&amp;tab=default_tab&amp;srt=rank&amp;vl(984357462UI1)=all_items&amp;vl(freeText0)=mystery&amp;dum=true&amp;dstmp=1479496074080" onclick="reportClick();reportBibTip('01UOML_ALMA21151369950002976');">The regatta <span class="searchword">mystery</span>, and other stories</a>
+                            </h2>
+                            <h3 class="EXLResultAuthor">Christie, Agatha, 1890-1976.</h3>
+                            <span class="EXLResultDetails"></span>
+                            <h3 class="EXLResultFourthLine">Toronto ; New York : Bantam Books, 1986</h3>
+                            <p id="snippet_01UOML_ALMA21151369950002976" style="" class="EXLResultSnippet"></p><!-- available.tag begin -->
+                            <input type="hidden" id="rtaElapseTime_7" value="1731">
+
+                            <script type="text/javascript">
+                                document.getElementById("rtaElapseTime_7").value = 'XXX' + new Date().getTime();
+                            </script>
+
+                            <p class="EXLResultAvailability">
+                                <em class="EXLResultStatusAvailable" id="RTADivTitle_7">Available at
+                                    <span class="EXLAvailabilityLibraryName">Richter Library</span>&nbsp;
+                                    <span class="EXLAvailabilityCollectionName">Books</span>&nbsp;
+                                    <span class="EXLAvailabilityCallNumber">(PR6005.H66 R4 1986 )</span>&nbsp;
+                                    <a class="map-marker"><span class="glyphicon glyphicon-map-marker" aria-hidden="true"></span></a>
+                                </em>
+                            </p>
+
+
+                            <script type="text/javascript">
+                                document.getElementById('RTASpan_7').innerHTML = '<span class="EXLAvailabilityRTAupdating">(updating...)<\/span>';
+                            </script>
+                            <noscript>This feature requires javascript</noscript>
+                            <!-- available.tag end --><div id="tocLabel_7" style="" class=""></div></div>
+
+                        <!-- Facebook Like Button -->
+                        <!-- End of Facebook Like Button -->
+
+                    </div>
+                    <div class="EXLTabsRibbon EXLTabsRibbonClosed">
+                        <input type="hidden" class="gatherpagestat" value="true">
+
+                        <input type="hidden" class="EXLTabBoomId ExlBoomStatic" id="StaticBoomParams_7" value="A=Primo_Local&amp;I=01UOML&amp;S=213463AF69726B7A3C081509914A7E1C&amp;G=&amp;IP=10.28.120.110&amp;SRVR=fe0201.prod.pmt.dc04.hosted.exlibrisgroup.com&amp;P=brief&amp;TYP=Page_View_4.9.6.0&amp;O=%268%26rank%26book%2601UOML%2601UOML - University of Miami%26%26&amp;O1=Primo Local&amp;O2=01UOML_ALMA&amp;O3=01UOML_ALMA21151369950002976&amp;O5=01UOML.01UOML.PPRD&amp;O6=&amp;O7=0&amp;O8=mystery&amp;O12=1&amp;O13=01UOML_ALMA&amp;O14=&amp;O15=&amp;O16=&amp;O17=default_tab&amp;O18=&amp;O23=Primo&amp;">
+                        <input type="hidden" class="boombaseurl" value="https://beacon01.alma.exlibrisgroup.com/boom/apache_pb.gif">
+
+                        <div>
+                            <ul id="exlidResult7-TabsList" class="EXLResultTabs">
+                                <!-- index: 0 length: 9 -->
+                                <!-- index: 1 length: 9 -->
+                                <li id="exlidResult7-RequestTab" class="EXLRequestTab EXLResultTab EXLResultFirstTab ">
+                                    <!-- rum statistics -->
+                                    <input type="hidden" class="gatherpagestat" value="true">
+
+                                    <input type="hidden" class="EXLTabBoomId ExlBoomDynamic" id="getit1request_7" value="OP=getit1&amp;O4=delivery,alma_tab1_avail,https://miami.userservices.exlibrisgroup.com/view/uresolver/01UOML_INST/openurl?ctx_enc=info:ofi/enc:UTF-8&amp;ctx_id=10_1&amp;ctx_tim=2016-11-18T13%3A07%3A54IST&amp;ctx_ver=Z39.88-2004&amp;url_ctx_fmt=info:ofi/fmt:kev:mtx:ctx&amp;url_ver=Z39.88-2004&amp;rfr_id=info:sid/primo.exlibrisgroup.com-01UOML_ALMA&amp;req_id=&amp;rft_dat=ie=01UOML_INST:21151369950002976,language=eng,view=uml&amp;svc_dat=getit&amp;user_ip={{userIp}}&amp;rfe.place=RICHTER&amp;O9=uml&amp;">
+                                    <input type="hidden" class="boombaseurl" value="https://beacon01.alma.exlibrisgroup.com/boom/apache_pb.gif">
+
+                                    <!-- end rum statistics -->
+                                    <a href="display.do?tabs=requestTab&amp;gathStatTab=true&amp;ct=display&amp;fn=search&amp;doc=01UOML_ALMA21151369950002976&amp;indx=8&amp;recIds=01UOML_ALMA21151369950002976&amp;recIdxs=7&amp;elementId=7&amp;renderMode=poppedOut&amp;displayMode=full&amp;frbrVersion=2&amp;frbg=&amp;&amp;dscnt=0&amp;vl(1UIStartWith0)=contains&amp;scp.scps=scope%3A%2801UOML_ALMA%29&amp;tb=t&amp;mode=Basic&amp;vid=uml&amp;vl(672718000UI0)=any&amp;tab=default_tab&amp;srt=rank&amp;vl(984357462UI1)=all_items&amp;vl(freeText0)=mystery&amp;dum=true&amp;dstmp=1479496074080" title="requestTab&nbsp;-&nbsp;7">
+                                        Find in Library</a>
+                                </li>
+                                <!-- index: 2 length: 9 -->
+                                <li id="exlidResult7-LocationsTab" class="EXLLocationsTab EXLResultTab ">
+                                    <a href="display.do?tabs=locationsTab&amp;gathStatTab=true&amp;ct=display&amp;fn=search&amp;doc=01UOML_ALMA21151369950002976&amp;indx=8&amp;recIds=01UOML_ALMA21151369950002976&amp;recIdxs=7&amp;elementId=7&amp;renderMode=poppedOut&amp;displayMode=full&amp;frbrVersion=2&amp;frbg=&amp;&amp;dscnt=0&amp;vl(1UIStartWith0)=contains&amp;scp.scps=scope%3A%2801UOML_ALMA%29&amp;tb=t&amp;mode=Basic&amp;vid=uml&amp;vl(672718000UI0)=any&amp;tab=default_tab&amp;srt=rank&amp;vl(984357462UI1)=all_items&amp;vl(freeText0)=mystery&amp;dum=true&amp;dstmp=1479496074080" title="locationsTab&nbsp;-&nbsp;7">Locations</a>
+
+                                    <!-- rum statistics -->
+                                    <input type="hidden" class="gatherpagestat" value="true">
+
+                                    <input type="hidden" class="EXLTabBoomId ExlBoomDynamic" id="locations_7" value="OP=locationTab&amp;O4=locations&amp;O9=uml&amp;">
+                                    <input type="hidden" class="boombaseurl" value="https://beacon01.alma.exlibrisgroup.com/boom/apache_pb.gif">
+
+                                    <!-- end rum statistics -->
+                                </li>
+                                <!-- index: 3 length: 9 -->
+                                <li id="exlidResult7-DetailsTab" class="EXLDetailsTab EXLResultTab ">
+                                    <a href="display.do?tabs=detailsTab&amp;gathStatTab=true&amp;ct=display&amp;fn=search&amp;doc=01UOML_ALMA21151369950002976&amp;indx=8&amp;recIds=01UOML_ALMA21151369950002976&amp;recIdxs=7&amp;elementId=7&amp;renderMode=poppedOut&amp;displayMode=full&amp;frbrVersion=2&amp;frbg=&amp;&amp;dscnt=0&amp;vl(1UIStartWith0)=contains&amp;scp.scps=scope%3A%2801UOML_ALMA%29&amp;tb=t&amp;mode=Basic&amp;vid=uml&amp;vl(672718000UI0)=any&amp;tab=default_tab&amp;srt=rank&amp;vl(984357462UI1)=all_items&amp;vl(freeText0)=mystery&amp;dum=true&amp;dstmp=1479496074080" title="detailsTab&nbsp;-&nbsp;7" id="exlidResult7-detailsTabLink">Details</a>
+                                    <!-- rum statistics -->
+                                    <input type="hidden" class="gatherpagestat" value="true">
+
+                                    <input type="hidden" class="EXLTabBoomId ExlBoomDynamic" id="details_7" value="OP=detailsTab&amp;O4=details&amp;O9=uml&amp;">
+                                    <input type="hidden" class="boombaseurl" value="https://beacon01.alma.exlibrisgroup.com/boom/apache_pb.gif">
+
+                                    <!-- end rum statistics -->
+                                </li>
+                                <!-- index: 4 length: 9 -->
+                                <!-- index: 5 length: 9 -->
+                                <!-- index: 6 length: 9 -->
+                                <!-- index: 7 length: 9 -->
+                                <!-- index: 8 length: 9 -->
+                                <li id="exlidResult7-BrowseshelfTab" class="EXLBrowseshelfTab EXLResultTab EXLResultLastTab ">
+                                    <a href="display.do?tabs=browseshelfTab&amp;gathStatTab=true&amp;tabRealType=browseshelf&amp;callNumber=0pr+++06005.h++66000++r4+1986&amp;callNumberBrowseField=browse_callnumber.0&amp;ct=display&amp;fn=search&amp;doc=01UOML_ALMA21151369950002976&amp;indx=8&amp;recIds=01UOML_ALMA21151369950002976&amp;recIdxs=7&amp;elementId=7&amp;renderMode=poppedOut&amp;displayMode=full&amp;frbrVersion=2&amp;frbg=&amp;&amp;dscnt=0&amp;vl(1UIStartWith0)=contains&amp;scp.scps=scope%3A%2801UOML_ALMA%29&amp;tb=t&amp;mode=Basic&amp;vid=uml&amp;vl(672718000UI0)=any&amp;tab=default_tab&amp;srt=rank&amp;vl(984357462UI1)=all_items&amp;vl(freeText0)=mystery&amp;dum=true&amp;dstmp=1479496074080" title="browseshelfTab&nbsp;-&nbsp;7">Virtual Browse</a>
+                                    <!-- rum statistics -->
+                                    <input type="hidden" class="gatherpagestat" value="true">
+
+                                    <input type="hidden" class="EXLTabBoomId ExlBoomDynamic" id="browseshelf_7" value="OP=browseshelfTab&amp;O4=browseshelf&amp;O9=uml&amp;">
+                                    <input type="hidden" class="boombaseurl" value="https://beacon01.alma.exlibrisgroup.com/boom/apache_pb.gif">
+
+                                    <!-- end rum statistics -->
+                                </li>
+                                <li class="citationTrailItem EXLResultTab"><cite class="EXLCitationTrailsIndicationContainer">
+                                </cite></li></ul>
+                            <div class="localItemToolsContainer" id="localidItemToolsContainer-6"><div class="localItemTools"><div><button type="button" class="localActionButton textmsg_ActionButton" tabindex="0" id="textmsg-record-7-toolbar" name="textmsg-record-7-toolbar" title="Send item details via text message" style="z-index: 144;"><span class="buttonText">Send via text message</span></button></div><div><button type="button" class="localActionButton email_ActionButton" tabindex="0" id="email-record-7-toolbar" name="email-record-7-toolbar" title="Send record by E-mail (opens in a new window)" style="z-index: 144;"><span class="buttonText">E-mail</span></button></div><div><button type="button" class="localActionButton print_ActionButton" tabindex="0" id="print-record-7-toolbar" name="print-record-7-toolbar" title="Print record (opens in a new window)" style="z-index: 144;"><span class="buttonText">Print</span></button></div><div><button type="button" class="localActionButton permalink_ActionButton" tabindex="0" id="permalink-record-7-toolbar" name="permalink-record-7-toolbar" title="Permalink URL for this record" style="z-index: 144;"><span class="buttonText">Permalink</span></button></div><div class="moreTools">More<div class="toolbarMore"><div><button type="button" class="localActionButton citation_ActionButton" tabindex="0" id="citation-record-7-toolbar" name="citation-record-7-toolbar" title="Bibliographic citation for this record" style="z-index: 144;"><span class="buttonText">Citation</span></button></div><div><button type="button" class="localActionButton exportRIS_ActionButton" tabindex="0" id="exportRIS-record-7-toolbar" name="exportRIS-record-7-toolbar" title="Export/save the bibliographic record" style="z-index: 144;"><span class="buttonText">Export Record (RIS)</span></button></div><div><button type="button" class="localActionButton refworks_ActionButton" tabindex="0" id="refworks-record-7-toolbar" name="refworks-record-7-toolbar" title="Upload bibliographic record to RefWorks (online service)" style="z-index: 144;"><span class="buttonText">RefWorks</span></button></div><div><button type="button" class="localActionButton endnote_ActionButton" tabindex="0" id="endnote-record-7-toolbar" name="endnote-record-7-toolbar" title="Upload bibliographic record to EndNote Basic (online service)" style="z-index: 144;"><span class="buttonText">EndNote</span></button></div><div><button type="button" class="localActionButton easybib_ActionButton" tabindex="0" id="easybib-record-7-toolbar" name="easybib-record-7-toolbar" title="Upload record to EasyBib" style="z-index: 144;"><span class="buttonText">EasyBib</span></button></div><div><button type="button" class="localActionButton issue_ActionButton" tabindex="0" id="issue-record-7-toolbar" name="issue-record-7-toolbar" title="Report an issue with this item" style="z-index: 144;"><span class="buttonText">Report An Issue</span></button></div></div></div></div></div></div>
+
+
+                    </div>
+
+                    <div id="exlidResult7-TabContainer-viewOnlineTab" class="EXLResultTabContainer EXLContainer-viewOnlineTab EXLResultTabContainerClosed">
+                    </div>
+                    <div id="exlidResult7-TabContainer-requestTab" class="EXLResultTabContainer EXLContainer-requestTab EXLResultTabContainerClosed">
+                    </div>
+                    <div id="exlidResult7-TabContainer-locationsTab" class="EXLResultTabContainer EXLContainer-locationsTab EXLResultTabContainerClosed">
+                    </div>
+                    <div id="exlidResult7-TabContainer-detailsTab" class="EXLResultTabContainer EXLContainer-detailsTab EXLResultTabContainerClosed">
+                    </div>
+                    <div id="exlidResult7-TabContainer-tagreviewsTab" class="EXLResultTabContainer EXLContainer-tagreviewsTab EXLResultTabContainerClosed">
+                    </div>
+                    <div id="exlidResult7-TabContainer-recommendTab" class="EXLResultTabContainer EXLContainer-recommendTab EXLResultTabContainerClosed">
+                    </div>
+                    <div id="exlidResult7-TabContainer-moreTab" class="EXLResultTabContainer EXLContainer-moreTab EXLResultTabContainerClosed">
+                    </div>
+                    <div id="exlidResult7-TabContainer-citationsTab" class="EXLResultTabContainer EXLContainer-citationsTab EXLResultTabContainerClosed">
+                    </div>
+                    <div id="exlidResult7-TabContainer-browseshelfTab" class="EXLResultTabContainer EXLContainer-browseshelfTab EXLResultTabContainerClosed">
+                    </div>
+                    <div id="exlidResult7-TabContainer-onlinereviewsTab" class="EXLResultTabContainer EXLContainer-onlinereviewsTab EXLResultTabContainerClosed">
+                    </div>
+
+                </td>
+                <!-- End of true condition -->
+
+            </tr>
+
+
+        </div>
     </div>
 
-</div>
 
+</div>
+<script src="dist/main.bundle.js"></script>
 </body>
 </html>
